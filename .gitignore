@@ -1,0 +1,9 @@
+*.exe
+*.log
+*.obj
+*.pdb
+*.recipe
+*.tlog
+*.txt
+
+/Assignment 1/hw1/.vs
