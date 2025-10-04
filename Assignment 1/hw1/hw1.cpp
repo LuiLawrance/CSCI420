@@ -1102,7 +1102,7 @@ void initVBO_VAO_mode1(PipelineProgram* pipelineProgram)
             const GLint loc = glGetAttribLocation(pipelineProgram->GetProgramHandle(), attrName);
             if (loc < 0)
             {
-                std::cout << "[init] Skipping missing vertex attribute '" << attrName << "'\n";
+                //std::cout << "[init] Skipping missing vertex attribute '" << attrName << "'\n";
                 return;
             }
             vao.ConnectPipelineProgramAndVBOAndShaderVariable(pipelineProgram, &vbo, attrName);
