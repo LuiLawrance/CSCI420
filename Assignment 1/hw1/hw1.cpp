@@ -116,25 +116,21 @@ VBO vboTriPos_m1, vboTriCol_m1;
 // Write a screenshot to the specified filename.
 void saveScreenshot(const char* filename)
 {
-    // Match old behavior: double resolution
-    int ww = windowWidth * 2;
-    int hh = windowHeight * 2;
-
-    // Allocate with unique_ptr
     std::unique_ptr<unsigned char[]> screenshotData =
-        std::make_unique<unsigned char[]>(ww * hh * 3);
+        std::make_unique<unsigned char[]>(windowWidth * windowHeight * 3);
 
-    // Read pixels at doubled resolution
-    glReadPixels(0, 0, ww, hh, GL_RGB, GL_UNSIGNED_BYTE, screenshotData.get());
+    glReadPixels(0, 0, windowWidth, windowHeight, GL_RGB, GL_UNSIGNED_BYTE, screenshotData.get());
+
+    std::string filepath = std::string("Screenshots/") + filename;
 
     // Create the image
-    ImageIO screenshotImg(ww, hh, 3, screenshotData.get());
+    ImageIO screenshotImg(windowWidth, windowHeight, 3, screenshotData.get());
 
     // Save as JPEG
-    if (screenshotImg.save(filename, ImageIO::FORMAT_JPEG) == ImageIO::OK)
-        std::cout << "File " << filename << " saved successfully." << std::endl;
+    if (screenshotImg.save(filepath.c_str(), ImageIO::FORMAT_JPEG) == ImageIO::OK)
+        std::cout << "File " << filepath << " saved successfully." << std::endl;
     else
-        std::cout << "Failed to save file " << filename << '.' << std::endl;
+        std::cout << "Failed to save file " << filepath << '.' << std::endl;
 }
 
 void idleFunc()
@@ -215,7 +211,7 @@ void idleFunc()
 #else
         std::snprintf(filenum, sizeof(filenum), "%03d", k);
 #endif
-        const std::string filename = std::string("Animations/color/") + filenum + ".jpg";
+        const std::string filename = std::string("Animations/") + filenum + ".jpg";
         saveScreenshot(filename.c_str());
     }
     else if (k >= 300)
