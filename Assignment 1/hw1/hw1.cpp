@@ -1220,10 +1220,11 @@ int main(int argc, char *argv[])
     if (!((argc != 3) ^ (argc != 2)))
     {
         cout << "The arguments are incorrect." << endl;
-        cout << "usage: ./hw1 <heightmap file>" << endl;
-        cout << "or" << endl;
+        cout << "Usage: ./hw1 <heightmap file>" << endl;
+        cout << "Ex: ./hw1 heightmap/spiral.jpg" << endl << endl;
         cout << "You can additionally provide color image to color the heightmap." << endl;
-        cout << "usage: ./hw1 <heightmap file> <color image file>" << endl;
+        cout << "Usage: ./hw1 <heightmap file> <color image file>" << endl;
+        cout << "Ex: ./hw1 heightmap/Heightmap.jpg heightmap/HeightmapColor.jpg" << endl;
         exit(EXIT_FAILURE);
     }
 
