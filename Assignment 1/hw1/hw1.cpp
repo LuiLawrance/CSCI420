@@ -59,9 +59,6 @@ int windowWidth = 1280;
 int windowHeight = 720;
 char windowTitle[512] = "CSCI 420 Homework 1";
 
-// Number of vertices in the single triangle (starter code).
-int numVertices;
-
 ImageIO* heightmapImage;
 
 int bytesPerPixel;
@@ -102,7 +99,6 @@ bool takeShots = false;
 // For animation
 bool animate = false;
 
-// Declare somewhere (members/globals as you had):
 VAO vaoPoint, vaoLine, vaoFixedColorMesh, vaoTriangle;
 VBO vboPointPos, vboPointCol;
 VBO vboLinePos, vboLineCol;
@@ -157,19 +153,19 @@ void idleFunc()
         }
         else
         {
-            if (shotCount <= 30) // 0–30: POINTS
+            if (shotCount <= 30)
             {
                 autoRot = true;
                 displayOption = DISPLAY_OPTION::POINTS;
                 glUniform1i(loc, 0);
             }
-            else if (shotCount <= 60) // 31–60: LINES
+            else if (shotCount <= 60)
             {
                 autoRot = true;
                 displayOption = DISPLAY_OPTION::LINES;
                 glUniform1i(loc, 0);
             }
-            else if (shotCount <= 140) // 61–140: TRIANGLES with translation sweep
+            else if (shotCount <= 140)
             {
                 autoRot = false;
                 displayOption = DISPLAY_OPTION::TRIANGLES;
@@ -178,7 +174,7 @@ void idleFunc()
                 if (shotCount <= 100) { terrainTranslate[0] += 0.4f; terrainTranslate[1] += 0.4f; terrainTranslate[2] -= 0.7f; }
                 else { terrainTranslate[0] -= 0.4f; terrainTranslate[1] -= 0.4f; terrainTranslate[2] += 0.7f; }
             }
-            else if (shotCount <= 220) // 141–220: SMOOTH (mode=1) with translation sweep
+            else if (shotCount <= 220)
             {
                 autoRot = false;
                 displayOption = DISPLAY_OPTION::SMOOTH;
@@ -187,7 +183,7 @@ void idleFunc()
                 if (shotCount <= 180) { terrainTranslate[0] -= 0.4f; terrainTranslate[1] += 0.4f; terrainTranslate[2] += 0.7f; }
                 else { terrainTranslate[0] += 0.4f; terrainTranslate[1] -= 0.4f; terrainTranslate[2] -= 0.7f; }
             }
-            else // 221–300: MESHANDSOLID with uniform scaling pulse
+            else
             {
                 displayOption = DISPLAY_OPTION::MESHANDSOLID;
                 glUniform1i(loc, 0);
@@ -391,20 +387,20 @@ void keyboardFunc(unsigned char key, int x, int y)
         glUniform1i(loc, 0);
         break;
 
-    case 't': // translate mode
+    case 't': // Translate mode
         controlState = TRANSLATE;
         break;
 
-    case 'r': // auto-rotate about Y
+    case 'r': // Auto-rotate about Y
         autoRot = true;
         toggle = -toggle;
         break;
 
-    case 'a': // run animation
+    case 'a': // Run animation
         animate = true;
         break;
 
-    case 's': // take 300 screenshots
+    case 's': // Take 300 screenshots
         takeShots = true;
         break;
     }
@@ -415,17 +411,14 @@ void displayFunc()
     // Clear the screen.
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    // --- Camera ---
     matrix.SetMatrixMode(OpenGLMatrix::ModelView);
     matrix.LoadIdentity();
 
-    // Match old dynamic LookAt based on imageW.
     int lookAtZ =
         (imageW < 200) ? 0 :
         (imageW < 500) ? 128 :
         (imageW < 700) ? 448 : 640;
 
-    // Old eye at (128, 128, lookAtZ), look at origin, up = +Y.
     matrix.LookAt(128.0, 128.0, static_cast<float>(lookAtZ),
         0.0, 0.0, 0.0,
         0.0, 1.0, 0.0);
@@ -452,11 +445,11 @@ void displayFunc()
     // In hw1, there is only one pipeline program, but in hw2 there will be several of them.
     // In such a case, you must separately upload to *each* pipeline program.
     // Important: do not make a typo in the variable name below; otherwise, the program will malfunction.
-    pipelineProgram.Bind(); // ensure program is active (if your wrapper requires it)
+    pipelineProgram.Bind();
     pipelineProgram.SetUniformVariableMatrix4fv("modelViewMatrix", GL_FALSE, modelViewMatrix);
     pipelineProgram.SetUniformVariableMatrix4fv("projectionMatrix", GL_FALSE, projectionMatrix);
 
-    // --- Draw based on displayOption (mirrors old switch) ---
+    // Draw based on displayOption
     switch (displayOption)
     {
     case DISPLAY_OPTION::POINTS:
@@ -479,18 +472,15 @@ void displayFunc()
     }
     case DISPLAY_OPTION::SMOOTH:
     {
-        // Uses vaoMode1 as in the old code.
         vaoMode1.Bind();
         glDrawArrays(GL_TRIANGLES, 0, static_cast<GLsizei>(trianglePosition.size() / 3));
         break;
     }
     case DISPLAY_OPTION::MESHANDSOLID:
     {
-        // Draw mesh (lines) first...
         vaoFixedColorMesh.Bind();
         glDrawArrays(GL_LINES, 0, static_cast<GLsizei>(fixedColorMeshPosition.size() / 3));
 
-        // ...then solid triangles with polygon offset (to reduce Z-fighting).
         glEnable(GL_POLYGON_OFFSET_FILL);
         glPolygonOffset(1.0f, 1.0f);
 
@@ -502,10 +492,8 @@ void displayFunc()
     }
     }
 
-    // Unbind any VAO.
     glBindVertexArray(0);
 
-    // Swap buffers.
     glutSwapBuffers();
 }
 
@@ -518,18 +506,15 @@ void readColorOverlayImage(int i, int j)
 
 void computeColorPixel(int i, int j)  // compute height from color and set RGB
 {
-    // Fetch sRGB [0..1]
     red = heightmapImage->getPixel(i, j, 0) / 255.0f;
     green = heightmapImage->getPixel(i, j, 1) / 255.0f;
     blue = heightmapImage->getPixel(i, j, 2) / 255.0f;
 
-    // Perceptual luminance-preserving grayscale (approximate):
+    // Perceptual luminance-preserving grayscale (approximate)
     const float Clinear = 0.2126f * red + 0.7152f * green + 0.0722f * blue;
 
     // sRGB gamma encode
-    const float Csrgb = (Clinear <= 0.0031308f)
-        ? 12.92f * Clinear
-        : 1.055f * std::pow(Clinear, 1.0f / 2.4f) - 0.055f;
+    const float Csrgb = (Clinear <= 0.0031308f) ? 12.92f * Clinear : 1.055f * std::pow(Clinear, 1.0f / 2.4f) - 0.055f;
 
     // Height in the same scale as your grayscale path
     height = Csrgb * 255.0f * scale;
@@ -545,13 +530,11 @@ void readHeightFieldMode0()
     const int imageWC = imageW / 2;
     const int imageHC = imageH / 2;
 
-    // Scale rule (same thresholds as before)
     scale = (imageW < 200) ? 0.11f
         : (imageW < 500) ? 0.16f
         : (imageW < 700) ? 0.23f
         : 0.34f;
 
-    // Start fresh
     pointPosition.clear();          pointColor.clear();
     linePosition.clear();           lineColor.clear();
     fixedColorMeshPosition.clear(); fixedColorMeshColor.clear();
@@ -566,7 +549,7 @@ void readHeightFieldMode0()
             if (colorState == GRAYSCALE)
             {
                 height = heightmapImage->getPixel(i + imageWC, j + imageHC, 0);
-                if (ARGC == 3) // overlay color provided
+                if (ARGC == 3)
                     readColorOverlayImage(i + imageWC, j + imageHC);
                 else
                     red = green = blue = height / 255.0f;
@@ -574,8 +557,6 @@ void readHeightFieldMode0()
             }
             else
             {
-                // Your computeColorPixel(...) should set red/green/blue and also set 'height'
-                // (matching your original behavior).
                 computeColorPixel(i + imageWC, j + imageHC);
             }
             pointPosition.push_back(static_cast<float>(i));
@@ -587,7 +568,6 @@ void readHeightFieldMode0()
             pointColor.push_back(alpha);
 
             // -------------------- LINE/WIREFRAME MODE --------------------
-            // Horizontal segment (i, j) -> (i+1, j)
             if (i < (imageWC - 2))
             {
                 if (colorState == GRAYSCALE)
@@ -680,7 +660,6 @@ void readHeightFieldMode0()
             }
 
             // -------------------- FIXED-COLOR MESH (for MESHANDSOLID) --------------------
-            // Horizontal fixed-color segment (i, j) -> (i+1, j)
             if (i < (imageWC - 2))
             {
                 if (colorState == GRAYSCALE)
@@ -690,7 +669,6 @@ void readHeightFieldMode0()
                 }
                 else
                 {
-                    // Maintain original behavior: computeColorPixel may set 'height'.
                     computeColorPixel(i + imageWC, j + imageHC);
                 }
                 red = 0.1f; green = 0.0f; blue = 0.2f;
@@ -901,34 +879,21 @@ void readHeightFieldMode0()
     }
 }
 
-void readHeightFieldMode1() // fills triPleft/triPright/triPdown/triPup from heightmap
+void readHeightFieldMode1()
 {
     // Dimensions from the height map
     imageW = heightmapImage->getWidth();
     imageH = heightmapImage->getHeight();
 
-    // Center the grid at world origin
     const int imageWC = imageW / 2;
     const int imageHC = imageH / 2;
 
-    // Scale rule matching the old logic
-    scale = (imageW < 200) ? 0.11f
-        : (imageW < 500) ? 0.16f
-        : (imageW < 700) ? 0.23f
-        : 0.34f;
+    scale = (imageW < 200) ? 0.11f : (imageW < 500) ? 0.16f : (imageW < 700) ? 0.23f : 0.34f;
 
-    // We’ll write fresh data
     triPleftPosition.clear();
     triPrightPosition.clear();
     triPdownPosition.clear();
     triPupPosition.clear();
-
-    // Optional: mild pre-reserve to avoid many reallocations (heuristic).
-    // Each (i,j) iteration pushes 4 * (3 coords) many times; exact count is large.
-    // triPleftPosition.reserve(imageW * imageH * 6);
-    // triPrightPosition.reserve(imageW * imageH * 6);
-    // triPdownPosition.reserve(imageW * imageH * 6);
-    // triPupPosition.reserve(imageW * imageH * 6);
 
     for (int i = -imageWC; i < (imageWC - 1); ++i)
     {
@@ -1129,7 +1094,6 @@ void initVBO_VAO_mode1(PipelineProgram* pipelineProgram)
     vboTriPos_m1.Gen(static_cast<int>(trianglePosition.size() / 3), 3, trianglePosition.data(), GL_STATIC_DRAW);
     vboTriCol_m1.Gen(static_cast<int>(triangleColor.size() / 4), 4, triangleColor.data(), GL_STATIC_DRAW);
 
-    // Create VAO for mode 1.
     vaoMode1.Gen();
 
     // Helper: only connect an attribute if it's actually present in the shader.
@@ -1157,8 +1121,6 @@ void initVBO_VAO_mode1(PipelineProgram* pipelineProgram)
 
 void initScene(int argc, char* argv[])
 {
-    // --- Load heightmap ---
-    // NOTE: keep these as your existing globals (as used by read* functions).
     heightmapImage = new ImageIO();
     if (heightmapImage->loadJPEG(argv[1]) != ImageIO::OK)
     {
@@ -1181,13 +1143,11 @@ void initScene(int argc, char* argv[])
         }
     }
 
-    // Background color (match old project)
     glClearColor(0.08f, 0.0f, 0.08f, 0.0f);
 
     // Z-buffer
     glEnable(GL_DEPTH_TEST);
 
-    // --- Build & bind the pipeline program (object form in the new template) ---
     if (pipelineProgram.BuildShadersFromFiles(shaderBasePath, "vertexShader.glsl", "fragmentShader.glsl") != 0)
     {
         std::cout << "Failed to build the pipeline program." << std::endl;
@@ -1196,14 +1156,9 @@ void initScene(int argc, char* argv[])
     pipelineProgram.Bind();
     std::cout << "Successfully built the pipeline program." << std::endl;
 
-    // --- Generate geometry from the images (fills your std::vectors) ---
-    // These are your existing functions; we already updated them earlier.
-    readHeightFieldMode0(); // fills point/line/fixedColorMesh/triangle arrays
-    readHeightFieldMode1(); // fills triPleft/triPright/triPdown/triPup arrays
+    readHeightFieldMode0();
+    readHeightFieldMode1();
 
-    // --- Create/wire VAOs & VBOs using the helpers (new template style) ---
-    // Use the helper-based init functions we rewrote (one-attribute-per-VBO).
-    // Their signatures should take a PipelineProgram*.
     initVBO_VAO_mode0(&pipelineProgram);
     initVBO_VAO_mode1(&pipelineProgram);
 
