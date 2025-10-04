@@ -121,7 +121,7 @@ void saveScreenshot(const char* filename)
 
     glReadPixels(0, 0, windowWidth, windowHeight, GL_RGB, GL_UNSIGNED_BYTE, screenshotData.get());
 
-    std::string filepath = std::string("Screenshots/") + filename;
+    std::string filepath = std::string("Images/") + filename;
 
     // Create the image
     ImageIO screenshotImg(windowWidth, windowHeight, 3, screenshotData.get());
